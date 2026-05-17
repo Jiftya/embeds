@@ -8,6 +8,8 @@ const supabase = createClient(
 
 const SLUG_RE = /^[a-zA-Z0-9_-]{3,40}$/;
 
+const SITE_URL = process.env.SITE_URL || 'http://vlink.lol'; // set this in Vercel env vars
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).send('Method not allowed');
@@ -29,7 +31,6 @@ export default async function handler(req, res) {
     return res.status(404).send('Embed not found');
   }
 
-  // Bump view counter (non-blocking, no supabase.raw needed)
   supabase.rpc('increment_views', { row_slug: slug }).then(() => {});
 
   const { thumb_url, video_url, video_w, video_h, redirect_url, og_type } = data;
@@ -39,7 +40,10 @@ export default async function handler(req, res) {
   <head>
     <meta charset="UTF-8">
     ${thumb_url ? `<meta property="og:image" content="${esc(thumb_url)}">` : ''}
-    <meta property="og:type" content="${esc(og_type)}">
+    <meta property="og:type"        content="${esc(og_type)}">
+    <meta property="og:url"         content="${esc(SITE_URL)}">
+    <meta property="og:site_name"   content="vlink">
+    <meta property="og:description" content="made with vlink — ${esc(SITE_URL)}">
     ${video_url ? `
     <meta property="og:video:url"    content="${esc(video_url)}">
     <meta property="og:video:width"  content="${video_w}">
@@ -53,7 +57,7 @@ export default async function handler(req, res) {
 </html>`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+  res.setHeader('Cache-Control', 'no-cache');
   res.status(200).send(html);
 }
 
