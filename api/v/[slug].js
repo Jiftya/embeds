@@ -1,7 +1,4 @@
 // api/v/[slug].js
-// Looks up an embed by slug and returns the OG embed HTML.
-// This is what Discord (and browsers) hit when someone shares the link.
-
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -9,7 +6,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Slug format guard
 const SLUG_RE = /^[a-zA-Z0-9_-]{3,40}$/;
 
 export default async function handler(req, res) {
@@ -23,7 +19,6 @@ export default async function handler(req, res) {
     return res.status(404).send('Not found');
   }
 
-  // Fetch embed record
   const { data, error } = await supabase
     .from('embeds')
     .select('thumb_url, video_url, video_w, video_h, redirect_url, og_type')
@@ -34,19 +29,11 @@ export default async function handler(req, res) {
     return res.status(404).send('Embed not found');
   }
 
-  // Optionally bump a view counter (non-blocking)
-  supabase.from('embeds').update({ views: supabase.raw('views + 1') }).eq('slug', slug).then(() => {});
+  // Bump view counter (non-blocking, no supabase.raw needed)
+  supabase.rpc('increment_views', { row_slug: slug }).then(() => {});
 
-  const {
-    thumb_url,
-    video_url,
-    video_w,
-    video_h,
-    redirect_url,
-    og_type,
-  } = data;
+  const { thumb_url, video_url, video_w, video_h, redirect_url, og_type } = data;
 
-  // Build HTML — all values come from DB (already validated on insert)
   const html = `<!DOCTYPE html>
 <html>
   <head>
@@ -66,12 +53,10 @@ export default async function handler(req, res) {
 </html>`;
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  // Cache for 5 minutes — Discord bots cache embeds aggressively
   res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
   res.status(200).send(html);
 }
 
-// Escape HTML special chars in attribute values
 function esc(str) {
   return String(str)
     .replace(/&/g,  '&amp;')
