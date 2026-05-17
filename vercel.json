@@ -1,8 +1,12 @@
 {
   "routes": [
-    { "src": "/v/([^/]+)", "dest": "/api/v/[slug]?slug=$1" },
-    { "src": "/api/create", "dest": "/api/create" },
-    { "src": "/api/upload", "dest": "/api/upload" },
-    { "src": "/",           "dest": "/index.html" }
+    { "src": "/v/([^/]+)",    "dest": "/api/v/[slug]?slug=$1" },
+    { "src": "/api/create",   "dest": "/api/create" },
+    { "src": "/api/upload",   "dest": "/api/upload" },
+    { "src": "/api/auth",     "dest": "/api/auth" },
+    { "src": "/api/links",    "dest": "/api/links" },
+    { "src": "/api/share",    "dest": "/api/share" },
+    { "src": "/api/delete",   "dest": "/api/delete" },
+    { "src": "/",             "dest": "/index.html" }
   ]
 }
