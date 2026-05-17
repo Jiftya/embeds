@@ -8,7 +8,7 @@ const supabase = createClient(
 
 const SLUG_RE = /^[a-zA-Z0-9_-]{3,40}$/;
 
-const SITE_URL = process.env.SITE_URL || 'http://vlink.lol'; // set this in Vercel env vars
+const SITE_URL = process.env.SITE_URL || 'https://vlink.lol'; // set this in Vercel env vars
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
