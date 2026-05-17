@@ -33,10 +33,9 @@ export default async function handler(req, res) {
 <html>
   <head>
     <meta charset="UTF-8">
-    <meta property="og:site_name"   content="vlink.lol">
+    <meta property="og:site_name"   content="made with https://vlink.lol">
     <meta property="og:type"        content="${esc(og_type)}">
     <meta property="og:url"         content="${esc(SITE_URL + '/v/' + slug)}">
-    ${title ? `<meta property="og:title" content="${esc(title)}">` : ''}
     <meta property="og:description" content="made with vlink.lol">
     ${thumb_url ? `<meta property="og:image" content="${esc(thumb_url)}">` : ''}
     ${video_url ? `
