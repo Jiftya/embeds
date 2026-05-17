@@ -1,0 +1,10 @@
+{
+  "name": "vlink",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.0",
+    "formidable": "^3.5.1",
+    "nanoid": "^5.0.7"
+  }
+}

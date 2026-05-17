@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vlink — discord embed builder</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Instrument+Sans:wght@400;500&display=swap');
+
+:root {
+  --bg: #08080a;
+  --s1: #101014;
+  --s2: #18181f;
+  --border: #252530;
+  --a: #7c6af7;
+  --a2: #f06292;
+  --text: #eeeef5;
+  --muted: #5a5a72;
+  --success: #4ade80;
+  --warn: #fbbf24;
+  --err: #f87171;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Instrument Sans', sans-serif;
+  min-height: 100vh;
+  padding: 0 20px 100px;
+  /* subtle grid bg */
+  background-image:
+    linear-gradient(rgba(124,106,247,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,106,247,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── HEADER ─────────────────────── */
+header {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 56px 0 48px;
+  text-align: center;
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(36px, 8vw, 58px);
+  letter-spacing: -3px;
+  line-height: 1;
+  background: linear-gradient(125deg, var(--a) 0%, var(--a2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+}
+
+.tagline {
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: .06em;
+}
+
+/* ── CARDS ──────────────────────── */
+.stack {
+  max-width: 660px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 26px 28px;
+  transition: border-color .2s;
+}
+
+.card:focus-within { border-color: rgba(124,106,247,.4); }
+
+.section-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after { content:''; flex:1; height:1px; background: var(--border); }
+
+.fields { display: flex; flex-direction: column; gap: 14px; }
+
+label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 5px;
+  letter-spacing: .03em;
+}
+
+label .req { color: var(--a); margin-left: 2px; }
+
+input[type=text], input[type=url], input[type=number], select, textarea {
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 14px;
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--a);
+  box-shadow: 0 0 0 3px rgba(124,106,247,.12);
+}
+input::placeholder, textarea::placeholder { color: var(--muted); }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── DROP ZONE ──────────────────── */
+.drop-wrap { position: relative; }
+
+.drop-zone {
+  background: var(--s2);
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 22px 16px;
+  text-align: center;
+  transition: border-color .2s, background .2s;
+}
+.drop-zone:hover, .drop-zone.over {
+  border-color: var(--a);
+  background: rgba(124,106,247,.06);
+}
+.drop-zone input[type=file] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.drop-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+.drop-hint { font-size: 13px; color: var(--muted); }
+.drop-hint strong { color: var(--text); }
+.file-chosen {
+  margin-top: 8px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--success);
+  word-break: break-all;
+}
+
+.or-divider {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin: 8px 0;
+  position: relative;
+}
+.or-divider::before, .or-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 42%;
+  height: 1px;
+  background: var(--border);
+}
+.or-divider::before { left: 0; }
+.or-divider::after { right: 0; }
+
+.size-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+/* ── WARN BOX ───────────────────── */
+.warn-box {
+  background: rgba(251,191,36,.06);
+  border: 1px solid rgba(251,191,36,.2);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 12px;
+  color: var(--warn);
+  line-height: 1.55;
+  margin-top: 4px;
+}
+
+/* ── GENERATE BUTTON ────────────── */
+.btn-generate {
+  max-width: 660px;
+  margin: 4px auto 0;
+  display: block;
+  width: 100%;
+  background: linear-gradient(125deg, var(--a), var(--a2));
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 18px;
+  text-transform: uppercase;
+  transition: opacity .15s, transform .1s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-generate:disabled { opacity: .5; cursor: not-allowed; }
+.btn-generate:not(:disabled):hover { opacity: .9; transform: translateY(-1px); }
+.btn-generate:not(:disabled):active { transform: translateY(0); }
+
+.btn-generate .spinner {
+  display: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 0 auto;
+}
+.btn-generate.loading .btn-text { display: none; }
+.btn-generate.loading .spinner { display: block; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── ERROR/STATUS ───────────────── */
+.status-box {
+  max-width: 660px;
+  margin: 12px auto 0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 13px;
+  display: none;
+  line-height: 1.5;
+}
+.status-box.err { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.25); color: var(--err); }
+.status-box.ok  { background: rgba(74,222,128,.08);  border: 1px solid rgba(74,222,128,.25);  color: var(--success); }
+.status-box.visible { display: block; }
+
+/* ── RESULT CARD ────────────────── */
+.result-card {
+  max-width: 660px;
+  margin: 20px auto 0;
+  background: var(--s1);
+  border: 1px solid rgba(124,106,247,.35);
+  border-radius: 14px;
+  padding: 28px;
+  display: none;
+  animation: fadeUp .35s ease;
+}
+.result-card.visible { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.link-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.link-url {
+  flex: 1;
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--a);
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy-btn {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 6px 12px;
+  text-transform: uppercase;
+  transition: border-color .15s, color .15s;
+  flex-shrink: 0;
+}
+.copy-btn:hover { border-color: var(--a); color: var(--a); }
+.copy-btn.done  { border-color: var(--success); color: var(--success); }
+
+/* Discord preview */
+.preview-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.discord-mock {
+  background: #313338;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.mock-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.mock-info { flex: 1; min-width: 0; }
+.mock-site { font-size: 11px; color: #72767d; margin-bottom: 2px; }
+.mock-title { font-size: 13px; font-weight: 600; color: #00aff4; margin-bottom: 4px; word-break: break-all; }
+.mock-desc  { font-size: 12px; color: #b5bac1; line-height: 1.4; margin-bottom: 6px; word-break: break-all; }
+.mock-badge {
+  display: inline-block;
+  background: rgba(88,101,242,.3);
+  border-radius: 3px;
+  padding: 1px 7px;
+  font-size: 10px;
+  color: #8ea1e1;
+  font-family: monospace;
+}
+
+@media (max-width: 480px) {
+  .card { padding: 18px 16px; }
+  .row2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">vlink</div>
+  <div class="tagline">build discord video embeds — share a link — done</div>
+</header>
+
+<div class="stack">
+
+  <!-- THUMBNAIL -->
+  <div class="card">
+    <div class="section-label">Thumbnail</div>
+    <div class="fields">
+      <div class="drop-wrap">
+        <label>Upload image / GIF <span style="color:var(--muted)">(max 8 MB)</span></label>
+        <div class="drop-zone" id="thumbDrop">
+          <input type="file" id="thumbFile" accept="image/*,.gif">
+          <span class="drop-icon">🖼️</span>
+          <div class="drop-hint"><strong>Click or drag</strong> to upload</div>
+          <div class="file-chosen" id="thumbChosen"></div>
+        </div>
+      </div>
+      <div class="or-divider">or</div>
+      <div>
+        <label>Paste a URL instead</label>
+        <input type="url" id="thumbUrl" placeholder="https://…/thumb.gif">
+      </div>
+    </div>
+  </div>
+
+  <!-- VIDEO -->
+  <div class="card">
+    <div class="section-label">Video</div>
+    <div class="fields">
+      <div class="drop-wrap">
+        <label>Upload video <span style="color:var(--muted)">(max 50 MB · MP4 / WebM)</span></label>
+        <div class="drop-zone" id="videoDrop">
+          <input type="file" id="videoFile" accept="video/mp4,video/webm">
+          <span class="drop-icon">🎬</span>
+          <div class="drop-hint"><strong>Click or drag</strong> to upload</div>
+          <div class="file-chosen" id="videoChosen"></div>
+        </div>
+      </div>
+      <div class="or-divider">or</div>
+      <div>
+        <label>Paste a video URL instead</label>
+        <input type="url" id="videoUrl" placeholder="https://…/video.mp4">
+      </div>
+      <div class="row2">
+        <div>
+          <label>Width (px)</label>
+          <input type="number" id="videoW" value="250" min="1" max="4000">
+        </div>
+        <div>
+          <label>Height (px)</label>
+          <input type="number" id="videoH" value="202" min="1" max="4000">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REDIRECT & OPTIONS -->
+  <div class="card">
+    <div class="section-label">Redirect &amp; Options</div>
+    <div class="fields">
+      <div>
+        <label>Redirect URL <span class="req">*</span> — where visitors land</label>
+        <input type="url" id="redirectUrl" placeholder="https://youtube.com/@you">
+      </div>
+      <div>
+        <label>og:type</label>
+        <select id="ogType">
+          <option value="video.other">video.other (recommended)</option>
+          <option value="website">website</option>
+          <option value="article">article</option>
+        </select>
+      </div>
+      <div>
+        <label>Custom slug <span style="color:var(--muted)">(optional — leave blank for random)</span></label>
+        <input type="text" id="customSlug" placeholder="my-cool-link" maxlength="40"
+          pattern="[a-zA-Z0-9_-]+" title="Letters, numbers, hyphens and underscores only">
+        <div class="size-note">Letters, numbers, hyphens, underscores only. 3–40 chars.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<button class="btn-generate" id="genBtn" onclick="generate()">
+  <span class="btn-text">Create Link</span>
+  <span class="spinner"></span>
+</button>
+
+<div class="status-box" id="statusBox"></div>
+
+<!-- RESULT -->
+<div class="result-card" id="resultCard">
+  <div class="result-label">Your Link</div>
+  <div class="link-display">
+    <div class="link-url" id="linkUrl"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copyLink()">Copy</button>
+  </div>
+  <div class="preview-label">Discord preview (approx)</div>
+  <div class="discord-mock">
+    <img class="mock-thumb" id="mockThumb" src="" alt="">
+    <div class="mock-info">
+      <div class="mock-site" id="mockSite">vlink</div>
+      <div class="mock-title" id="mockTitle"></div>
+      <div class="mock-desc"  id="mockDesc"></div>
+      <span class="mock-badge" id="mockBadge">video.other</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DROP ZONES ────────────────────────────────────────────────
+function setupDrop(dropId, fileId, chosenId) {
+  const drop = document.getElementById(dropId);
+  const inp  = document.getElementById(fileId);
+  const lbl  = document.getElementById(chosenId);
+
+  const setName = () => {
+    if (inp.files[0]) lbl.textContent = '✓ ' + inp.files[0].name;
+  };
+
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault();
+    drop.classList.remove('over');
+    if (e.dataTransfer.files[0]) { inp.files = e.dataTransfer.files; setName(); }
+  });
+  inp.addEventListener('change', setName);
+}
+
+setupDrop('thumbDrop',  'thumbFile',  'thumbChosen');
+setupDrop('videoDrop',  'videoFile',  'videoChosen');
+
+// ── HELPERS ───────────────────────────────────────────────────
+function showStatus(msg, type) {
+  const el = document.getElementById('statusBox');
+  el.textContent = msg;
+  el.className = 'status-box visible ' + type;
+}
+
+function hideStatus() {
+  document.getElementById('statusBox').className = 'status-box';
+}
+
+async function uploadFile(file, type) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('type', type); // 'thumb' or 'video'
+  const res = await fetch('/api/upload', { method: 'POST', body: fd });
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw new Error(j.error || 'Upload failed');
+  }
+  const j = await res.json();
+  return j.url;
+}
+
+// ── MAIN GENERATE ─────────────────────────────────────────────
+async function generate() {
+  hideStatus();
+  document.getElementById('resultCard').classList.remove('visible');
+
+  const thumbFile   = document.getElementById('thumbFile').files[0];
+  const thumbUrl    = document.getElementById('thumbUrl').value.trim();
+  const videoFile   = document.getElementById('videoFile').files[0];
+  const videoUrl    = document.getElementById('videoUrl').value.trim();
+  const redirectUrl = document.getElementById('redirectUrl').value.trim();
+  const ogType      = document.getElementById('ogType').value;
+  const customSlug  = document.getElementById('customSlug').value.trim();
+  const videoW      = document.getElementById('videoW').value || '250';
+  const videoH      = document.getElementById('videoH').value || '202';
+
+  if (!redirectUrl) {
+    showStatus('Redirect URL is required.', 'err'); return;
+  }
+  if (!thumbFile && !thumbUrl && !videoFile && !videoUrl) {
+    showStatus('Add at least a thumbnail or video.', 'err'); return;
+  }
+  if (customSlug && !/^[a-zA-Z0-9_-]{3,40}$/.test(customSlug)) {
+    showStatus('Slug must be 3–40 chars: letters, numbers, hyphens, underscores.', 'err'); return;
+  }
+
+  // File size guards (client-side)
+  if (thumbFile && thumbFile.size > 8 * 1024 * 1024) {
+    showStatus('Thumbnail must be under 8 MB.', 'err'); return;
+  }
+  if (videoFile && videoFile.size > 50 * 1024 * 1024) {
+    showStatus('Video must be under 50 MB.', 'err'); return;
+  }
+
+  const btn = document.getElementById('genBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    let finalThumbUrl = thumbUrl;
+    let finalVideoUrl = videoUrl;
+
+    if (thumbFile) {
+      showStatus('Uploading thumbnail…', 'ok');
+      finalThumbUrl = await uploadFile(thumbFile, 'thumb');
+    }
+    if (videoFile) {
+      showStatus('Uploading video…', 'ok');
+      finalVideoUrl = await uploadFile(videoFile, 'video');
+    }
+
+    showStatus('Saving embed…', 'ok');
+
+    const res = await fetch('/api/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        thumb_url:    finalThumbUrl,
+        video_url:    finalVideoUrl,
+        video_w:      parseInt(videoW),
+        video_h:      parseInt(videoH),
+        redirect_url: redirectUrl,
+        og_type:      ogType,
+        custom_slug:  customSlug || null,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Something went wrong');
+
+    hideStatus();
+
+    const fullLink = window.location.origin + '/v/' + data.slug;
+    document.getElementById('linkUrl').textContent = fullLink;
+
+    document.getElementById('mockThumb').src = finalThumbUrl || '';
+    document.getElementById('mockTitle').textContent = fullLink;
+    document.getElementById('mockDesc').textContent  = finalVideoUrl || '';
+    document.getElementById('mockBadge').textContent = ogType;
+
+    document.getElementById('resultCard').classList.add('visible');
+    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (err) {
+    showStatus('Error: ' + err.message, 'err');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+function copyLink() {
+  const url = document.getElementById('linkUrl').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1800);
+  });
+}
+</script>
+</body>
+</html>
